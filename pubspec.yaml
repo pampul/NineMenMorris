@@ -1,0 +1,7 @@
+name: NineMenMorris
+author: Argetloum
+description: Nine Men Morris Game
+dependencies:
+  browser: any
+  js: any
+  web_ui: any

@@ -1,0 +1,77 @@
+body {
+  background-color: #fff;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.2em;
+  margin: 15px;
+}
+
+h1, p {
+  color: #333;
+}
+
+#container{
+  margin-top: 50px;
+}
+
+#leftChoice{
+  float: left;
+  width: 100px;
+  padding-right: 15px;
+  margin-right: 15px;
+  border-right: 1px solid #333;
+}
+
+#game{
+  float: left;
+}
+
+#rightChoice{
+  float: left;
+  width: 100px;
+  margin-left: 15px;
+  padding-left: 15px;
+  border-left: 1px solid #333;
+}
+
+table td{
+  border: 1px solid #d9d8d8;
+  width: 50px;
+  height:50px;
+}
+
+table td.playable{
+  background: #abdeff;
+}
+
+ul{
+  padding: 0;
+  margin: 0;
+}
+
+ul#list-buttons-left li, ul#list-buttons-right li{
+  list-style-type: none;
+  width: 75px;
+  height: 75px;
+  border: 1px solid #d9d8d8;
+  display:block;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+ul#list-buttons-left li:hover, ul#list-buttons-right li:hover{
+  border: 1px solid red;
+  cursor: pointer;
+}
+
+.selected{
+  border: 1px solid red!important;
+}
+
+.snow{
+  background-image:url(../img/snow.jpg)!important;
+}
+.khaleesi{
+  background-image:url(../img/khaleesi.jpg)!important;
+}
