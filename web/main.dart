@@ -27,10 +27,10 @@ int playerTurn = 0;
 // Game constants
 const TIMEOUT = const Duration(seconds: 1);
 // Set to 17 for the real game
-final int MIN_ITEMS_TO_DROP = 5;
+final int MIN_ITEMS_TO_DROP = 17;
 
-final int POINTS_FOR_OWN_MILL = 6;
-final int POINTS_FOR_ADV_MILL = 5;
+final int POINTS_FOR_OWN_MILL = 7;
+final int POINTS_FOR_ADV_MILL = 6;
 final int POINTS_FOR_NEUTRAL_POINT = 2;
 final int POINTS_FOR_OWN_POINT = 4;
 final int POINTS_FOR_ADV_POINT = 5;
@@ -42,8 +42,10 @@ int round = 0;
 int droppedItems = 0;
 Player currentPlayer;
 
-Position pos1;
-Position pos2;
+Position pos1 = new Position();
+Position pos2 = new Position();
+Position pos3 = new Position();
+Position pos4 = new Position();
 
 
 /**
@@ -285,17 +287,7 @@ void doIAStuff(Player player){
     //print('Check mill ...');
     if(checkLinePossibilities(bp, player, true, true)){
       // If it's a new mill, update items
-      int indexOfElement = gameBoard.listPositions.indexOf(bp.emplacement);
-      bp.emplacement.isMorris = true;
-      gameBoard.listPositions[indexOfElement] = bp.emplacement;
-      
-      indexOfElement = gameBoard.listPositions.indexOf(pos1);
-      pos1.isMorris = true;
-      gameBoard.listPositions[indexOfElement] = pos1;
-      
-      indexOfElement = gameBoard.listPositions.indexOf(pos2);
-      pos2.isMorris = true;
-      gameBoard.listPositions[indexOfElement] = pos2;
+      updatePositionsToMill(bp.emplacement, true);
       
       print('We have a mill ... Delete a player item now !');
       message = 'Mill detected ... We go to delete an item !';
@@ -428,8 +420,6 @@ void removeAnItem(Position p){
   // We deleting the current index
   gameBoard.listPositions.removeAt(indexOfElem);
   gameBoard.listPositions.add(p);
-  
-  print('The case : ' + gameBoard.listPositions[gameBoard.listPositions.length - 1].square + '-' + gameBoard.listPositions[gameBoard.listPositions.length - 1].value.toString() + ' -- is on player name : '+gameBoard.listPositions[gameBoard.listPositions.length - 1].player.name);
   return;
   
 }
@@ -445,6 +435,14 @@ void moveItem(BestPosition bp, Player p){
     // Display the next move
     print('Move item from : ' + bp.startEmplacement.square + '-'+bp.startEmplacement.value.toString()+' to : '+bp.emplacement.square + '-'+bp.emplacement.value.toString());
     
+    // We break the mill, if there is a mill
+    BestPosition fakeBp = new BestPosition(0, bp.startEmplacement);
+    if(checkLinePossibilities(fakeBp, p, true, true)){
+      print('We break a mill ...');
+      // If we break a mill, update items
+      updatePositionsToMill(fakeBp.emplacement, false);
+    }
+      
     // We remove an item
     removeAnItem(bp.startEmplacement);
     
@@ -458,6 +456,38 @@ void moveItem(BestPosition bp, Player p){
     return;
   }
   
+}
+
+
+/**
+ * Function to update mill status
+ */
+void updatePositionsToMill(Position p, bool newVal){
+  
+  int indexOfElement = gameBoard.listPositions.indexOf(p);
+  p.isMorris = false;
+  gameBoard.listPositions[indexOfElement] = p;
+  
+  if(pos1.player != null){
+    indexOfElement = gameBoard.listPositions.indexOf(pos1);
+    pos1.isMorris = newVal;
+    gameBoard.listPositions[indexOfElement] = pos1;
+  }
+  if(pos2.player != null){
+    indexOfElement = gameBoard.listPositions.indexOf(pos2);
+    pos2.isMorris = newVal;
+    gameBoard.listPositions[indexOfElement] = pos2;
+  }
+  if(pos3.player != null){
+    indexOfElement = gameBoard.listPositions.indexOf(pos3);
+    pos3.isMorris = newVal;
+    gameBoard.listPositions[indexOfElement] = pos3;
+  }
+  if(pos4.player != null){
+    indexOfElement = gameBoard.listPositions.indexOf(pos4);
+    pos4.isMorris = newVal;
+    gameBoard.listPositions[indexOfElement] = pos4;
+  }
 }
 
 
@@ -770,6 +800,10 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
   
   int totalPoints = 0;
   List<int> listVals = [0,2,4,6];
+  pos1 = new Position();
+  pos2 = new Position();
+  pos3 = new Position();
+  pos4 = new Position();
   
   /** 
    * First : if the point is on 0-2-4 or 6 :
@@ -830,8 +864,8 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         if(negativePositionChecked[0].player.number == playerConcernedBy.number){
           totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
-            pos1 = positivePositionChecked[0];
-            pos2 = positivePositionChecked[1];
+            pos3 = positivePositionChecked[0];
+            pos4 = positivePositionChecked[1];
             return true;
           }
         }else{
@@ -938,8 +972,8 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         if(sameSquarePositions[0].player.number == playerConcernedBy.number){
           totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
-            pos1 = sameSquarePositions[0];
-            pos2 = sameSquarePositions[1];
+            pos3 = sameSquarePositions[0];
+            pos4 = sameSquarePositions[1];
             return true;
           }
         }else{
