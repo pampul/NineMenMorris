@@ -49,7 +49,20 @@ List<Element> listPositionsElements;
 List<BestPosition> listBestPositionsNeeded;
 // Player turn
 int playerTurn = 0;
+
+// -----------------------------------
+// Game constants
 const TIMEOUT = const Duration(seconds: 1);
+// Set to 17 for the real game
+final int MIN_ITEMS_TO_DROP = 5;
+
+final int POINTS_FOR_OWN_MILL = 6;
+final int POINTS_FOR_ADV_MILL = 5;
+final int POINTS_FOR_NEUTRAL_POINT = 2;
+final int POINTS_FOR_OWN_POINT = 4;
+final int POINTS_FOR_ADV_POINT = 5;
+final int POINTS_FOR_ONE_POINT = 1;
+// -----------------------------------
 
 int __$round = 0;
 int get round {
@@ -209,7 +222,7 @@ void checkGameStep(){
   // We check the current round
   //print('Nbr of items dropped : ' + droppedItems.toString());
   
-  if(droppedItems > 17 && gameBoard.gamePhase != 2){
+  if(droppedItems > MIN_ITEMS_TO_DROP && gameBoard.gamePhase != 2){
     gameBoard.gamePhase = 2;
     round = 0;
     print('Game step 2 enclenched ...');
@@ -334,7 +347,7 @@ void doIAStuff(Player player){
           break;
           
         case 2:
-          Timer timer = new Timer(TIMEOUT, () => IADeleteItem(gameBoard.player2));
+          Timer timer = new Timer(TIMEOUT, () => IADeleteItem(gameBoard.player1));
           return;
           break;
       }
@@ -392,8 +405,13 @@ void IADeleteItem(Player adversary){
    */
   BestPosition bp = getBestPosition(adversary, adversary, true);
   
-  // Then, we remove the item
-  removeAnItem(bp.emplacement);
+  // If we can delete an item
+  if(bp.emplacement != null){
+    // Then, we remove the item
+    removeAnItem(bp.emplacement);
+  }else{
+    print('Cannot delete an item : there are only mills !');
+  }
   
   finishYourTurn();
 }
@@ -404,7 +422,8 @@ void IADeleteItem(Player adversary){
  */
 void dropItem(Position p, Player player){
   
-  droppedItems++;
+  if(gameBoard.gamePhase == 1)
+    droppedItems++;
   
   // We get the index of the item in the list
   int indexOfElem = gameBoard.listPositions.indexOf(p);
@@ -417,10 +436,12 @@ void dropItem(Position p, Player player){
   gameBoard.listPositions.add(p);
   
   // Log to the server
-  print('Drop item to : ' + p.square + '-' + p.value.toString());
+  if(gameBoard.gamePhase == 1)
+    print('Drop item to : ' + p.square + '-' + p.value.toString());
   
   // Then we paint the case
   caseToPaint.classes.add(player.name);
+  return;
   
 }
 
@@ -430,11 +451,10 @@ void dropItem(Position p, Player player){
  */
 void removeAnItem(Position p){
   
-  // Log to the server
-  print('Remove item from player "' + p.player.name + '" in ' + p.square + '-' + p.value.toString());
-
   // We get the index of the item in the list
   int indexOfElem = gameBoard.listPositions.indexOf(p);
+  //print('Want to delete : ' + p.square + '-' + p.value.toString() + ' | ' 
+  //    + gameBoard.listPositions[indexOfElem].square + '-' + gameBoard.listPositions[indexOfElem].value.toString());
   // We get the DOM Element
   Element caseToPaint = getCaseByPosition(p);
   
@@ -448,6 +468,9 @@ void removeAnItem(Position p){
   gameBoard.listPositions.removeAt(indexOfElem);
   gameBoard.listPositions.add(p);
   
+  print('The case : ' + gameBoard.listPositions[gameBoard.listPositions.length - 1].square + '-' + gameBoard.listPositions[gameBoard.listPositions.length - 1].value.toString() + ' -- is on player name : '+gameBoard.listPositions[gameBoard.listPositions.length - 1].player.name);
+  return;
+  
 }
 
 
@@ -459,36 +482,19 @@ void moveItem(BestPosition bp, Player p){
   
   if(bp != null && bp.startEmplacement != null && bp.emplacement != null){
     // Display the next move
-    print('We\'ll move ' + bp.startEmplacement.square + '-'+bp.startEmplacement.value.toString()+' to : '+bp.emplacement.square + '-'+bp.emplacement.value.toString());
+    print('Move item from : ' + bp.startEmplacement.square + '-'+bp.startEmplacement.value.toString()+' to : '+bp.emplacement.square + '-'+bp.emplacement.value.toString());
     
-    // We get the index of the item in the list
-    int indexOfElem = gameBoard.listPositions.indexOf(bp.startEmplacement);
-    // We get the DOM Element
-    Element caseToPaint = getCaseByPosition(bp.startEmplacement);
-    // We araise the case
-    caseToPaint.classes.remove(bp.startEmplacement.player.name);
-    
-    // change the owner
-    bp.startEmplacement.player = gameBoard.player0;
-    gameBoard.listPositions.removeAt(indexOfElem);
-    gameBoard.listPositions.add(bp.startEmplacement);
+    // We remove an item
+    removeAnItem(bp.startEmplacement);
     
     // --------------------------------
     // Then, we set the new position
-    // We get the index of the item in the list
-    indexOfElem = gameBoard.listPositions.indexOf(bp.emplacement);
-    // We get the DOM Element
-    caseToPaint = getCaseByPosition(bp.emplacement);
-    bp.emplacement.player = p;
+    dropItem(bp.emplacement, p);
     
-    // We deleting the current index
-    gameBoard.listPositions.removeAt(indexOfElem);
-    gameBoard.listPositions.add(bp.emplacement);
-    
-    // Then we paint the case
-    caseToPaint.classes.add(p.name);
+    return;
   }else{
     doGameOver(true);
+    return;
   }
   
 }
@@ -511,6 +517,10 @@ void moveItem(BestPosition bp, Player p){
  */
 BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy, bool isAvailableToDelete){
 
+  BestPosition worstEnv = new BestPosition();
+  if(gameBoard.gamePhase == 2 && currentPlayer.isGamePhase3)
+    worstEnv = getWorstEnv(currentPlayer);
+  
   listBestPositionsNeeded = new List<BestPosition>();
   
   /**
@@ -548,7 +558,7 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
     // We list the whole positions needed
     for(int i = 0;i < gameBoard.listPositions.length;i++){
       
-      if(gameBoard.gamePhase == 2 && neededCasesPlayer.isGamePhase3){
+      if(gameBoard.gamePhase == 2 && currentPlayer.isGamePhase3){
         // We get an empty case
         if(gameBoard.listPositions[i].player.number == 0){
           BestPosition bpNew = new BestPosition();
@@ -566,7 +576,7 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
                 //    + ' to : ' + possibleMoves[j].square + '-' + possibleMoves[j].value.toString());
                 
                 BestPosition bestPos = new BestPosition(0, possibleMoves[j]);
-                bestPos.startEmplacement = gameBoard.listPositions[i];
+                bestPos.startEmplacement = worstEnv.emplacement;
                 listBestPositionsNeeded.add(bestPos);
                 setPointsToPosition(bestPos, playerConcernedBy, false);
               }
@@ -610,13 +620,18 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
   // If we are in delete phase, we check if the position isn't a mill
   List<BestPosition> bpList = new List<BestPosition>();
   int maxPositionPoints = 0;
+  //print('Player : '+currentPlayer.number.toString() + ' - level : ' +currentPlayer.level.toString());
   for(int i = 0;i < listBestPositionsNeeded.length;i++){
     if(!isAvailableToDelete){
-      if(listBestPositionsNeeded[i].points == maxPositionPoints){
-        bpList.add(listBestPositionsNeeded[i]);
-      }else if(listBestPositionsNeeded[i].points > maxPositionPoints){
-        maxPositionPoints = listBestPositionsNeeded[i].points;
-        bpList = new List<BestPosition>();
+      if(currentPlayer.level == 3){
+        if(listBestPositionsNeeded[i].points == maxPositionPoints){
+          bpList.add(listBestPositionsNeeded[i]);
+        }else if(listBestPositionsNeeded[i].points > maxPositionPoints){
+          maxPositionPoints = listBestPositionsNeeded[i].points;
+          bpList = new List<BestPosition>();
+          bpList.add(listBestPositionsNeeded[i]);
+        }
+      }else{
         bpList.add(listBestPositionsNeeded[i]);
       }
     }else{
@@ -638,6 +653,7 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
  * Get random item if the list has many possibilities who has the same points
  */
 BestPosition getBestRandomPosition(List<BestPosition> bpList){
+  
   if(bpList.length == 1)
     return bpList[0];
   else if(bpList.length == 0){
@@ -651,6 +667,7 @@ BestPosition getBestRandomPosition(List<BestPosition> bpList){
     return bpList[n];
   }
 }
+
 
 
 /**
@@ -687,14 +704,14 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
   int totalPoints = 0;
   for(int i = 0;i < possibleMoves.length;i++){
     // One movement += 1 point
-    totalPoints += 1;
+    totalPoints += POINTS_FOR_ONE_POINT;
     
     if(possibleMoves[i].player.number == playerConcernedBy.number)
-      totalPoints+=5;
+      totalPoints+=POINTS_FOR_OWN_POINT;
     else if(possibleMoves[i].player.number == 0)
-      totalPoints+=2;
+      totalPoints+=POINTS_FOR_NEUTRAL_POINT;
     else
-      totalPoints+=4;
+      totalPoints+=POINTS_FOR_ADV_POINT;
   }
   
   // Get the index
@@ -835,14 +852,14 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
     if(positivePositionChecked.length == 2){
       if(positivePositionChecked[0].player.number != 0 && positivePositionChecked[0].player.number == positivePositionChecked[1].player.number){
         if(positivePositionChecked[0].player.number == playerConcernedBy.number){
-          totalPoints += 4;
+          totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
             pos1 = positivePositionChecked[0];
             pos2 = positivePositionChecked[1];
             return true;
           }
         }else{
-          totalPoints += 3;
+          totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
     }
@@ -850,14 +867,14 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
     if(negativePositionChecked.length == 2){
       if(negativePositionChecked[0].player.number != 0 && negativePositionChecked[0].player.number == negativePositionChecked[1].player.number){
         if(negativePositionChecked[0].player.number == playerConcernedBy.number){
-          totalPoints += 4;
+          totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
             pos1 = positivePositionChecked[0];
             pos2 = positivePositionChecked[1];
             return true;
           }
         }else{
-          totalPoints += 3;
+          totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
     }
@@ -943,14 +960,14 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
     if(minusAndPlusPositions.length == 2){
       if(minusAndPlusPositions[0].player.number != 0 && minusAndPlusPositions[0].player.number == minusAndPlusPositions[1].player.number){
         if(minusAndPlusPositions[0].player.number == playerConcernedBy.number){
-          totalPoints += 4;
+          totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
             pos1 = minusAndPlusPositions[0];
             pos2 = minusAndPlusPositions[1];
             return true;
           }
         }else{
-          totalPoints += 3;
+          totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
     }
@@ -958,14 +975,14 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
     if(sameSquarePositions.length == 2){
       if(sameSquarePositions[0].player.number != 0 && sameSquarePositions[0].player.number == sameSquarePositions[1].player.number){
         if(sameSquarePositions[0].player.number == playerConcernedBy.number){
-          totalPoints += 4;
+          totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
             pos1 = sameSquarePositions[0];
             pos2 = sameSquarePositions[1];
             return true;
           }
         }else{
-          totalPoints += 3;
+          totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
     }
@@ -990,6 +1007,48 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
   }else{
     return false;
   }
+  
+}
+
+
+/**
+ * Get the worst env
+ */
+BestPosition getWorstEnv(Player p){
+  
+  listBestPositionsNeeded = new List<BestPosition>();
+  
+  // We list the whole positions needed
+  for(int i = 0;i < gameBoard.listPositions.length;i++){
+    // If position concern the player, we add it
+    if(gameBoard.listPositions[i].player.number == p.number){
+        //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
+        BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
+        //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
+        listBestPositionsNeeded.add(bestPos);
+        setPointsToPosition(bestPos, p, true);
+      
+    }
+  }
+  
+  List<BestPosition> bpList = new List<BestPosition>();
+  int minPositionPoints = 1000;
+  //print('Player : '+currentPlayer.number.toString() + ' - level : ' +currentPlayer.level.toString());
+  for(int i = 0;i < listBestPositionsNeeded.length;i++){
+      if(currentPlayer.level == 3){
+        if(listBestPositionsNeeded[i].points == minPositionPoints){
+          bpList.add(listBestPositionsNeeded[i]);
+        }else if(listBestPositionsNeeded[i].points < minPositionPoints){
+          minPositionPoints = listBestPositionsNeeded[i].points;
+          bpList = new List<BestPosition>();
+          bpList.add(listBestPositionsNeeded[i]);
+        }
+      }else{
+        bpList.add(listBestPositionsNeeded[i]);
+      }
+  }
+  
+  return getBestRandomPosition(bpList);
   
 }
 
