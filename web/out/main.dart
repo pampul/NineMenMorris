@@ -157,7 +157,7 @@ int getPositionIndex(Position p){
  * Get a case by his position
  */
 Element getCaseByPosition(Position p){
-  for(var i=0;i<listPositionsElements.length;i++){
+  for(int i=0;i<listPositionsElements.length;i++){
     if(listPositionsElements[i].attributes["data-square"] == p.square && listPositionsElements[i].attributes["data-value"] == p.value.toString()){
       return listPositionsElements[i];
       break;
@@ -264,33 +264,30 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
   
   // We list the whole positions needed
   listBestPositionsNeeded = new List<BestPosition>();
-  for(var i = 0;i < gameBoard.listPositions.length;i++){
+  for(int i = 0;i < gameBoard.listPositions.length;i++){
     // If position concern the player, we add it
     if(gameBoard.listPositions[i].player.number == neededCasesPlayer.number){
       //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
       BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
-      print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
+      //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
       listBestPositionsNeeded.add(bestPos);
+      setPointsToPosition(bestPos, playerConcernedBy);
     }
   }
   
   // Display the number of positions founded
   print('Founded : ' + listBestPositionsNeeded.length.toString() + ' positions.');
   
-  // We set points for every positions
-  for(var j = 0;j < listBestPositionsNeeded.length;j++){
-    setPointsToPosition(listBestPositionsNeeded[j], playerConcernedBy);
-  }
-  
   // Then, we check the best possibilities and take a random one
   // If we are in delete phase, we check if the position isn't a mill
   List<BestPosition> bpList = new List<BestPosition>();
   int maxPositionPoints = 0;
-  for(var i = 0;i < listBestPositionsNeeded.length;i++){
+  for(int i = 0;i < listBestPositionsNeeded.length;i++){
     if(!isAvailableToDelete){
       if(listBestPositionsNeeded[i].points == maxPositionPoints){
         bpList.add(listBestPositionsNeeded[i]);
       }else if(listBestPositionsNeeded[i].points > maxPositionPoints){
+        maxPositionPoints = listBestPositionsNeeded[i].points;
         bpList = new List<BestPosition>();
         bpList.add(listBestPositionsNeeded[i]);
       }
@@ -298,6 +295,7 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
       if(listBestPositionsNeeded[i].points == maxPositionPoints && !listBestPositionsNeeded[i].emplacement.isMorris){
         bpList.add(listBestPositionsNeeded[i]);
       }else if(listBestPositionsNeeded[i].points > maxPositionPoints && !listBestPositionsNeeded[i].emplacement.isMorris){
+        maxPositionPoints = listBestPositionsNeeded[i].points;
         bpList = new List<BestPosition>();
         bpList.add(listBestPositionsNeeded[i]);
       }
@@ -355,7 +353,10 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy){
   
   // We loop the positions to give points
   int totalPoints = 0;
-  for(var i = 0;i < possibleMoves.length;i++){
+  for(int i = 0;i < possibleMoves.length;i++){
+    // One movement += 1 point
+    totalPoints += 1;
+    
     if(possibleMoves[i].player.number == playerConcernedBy.number)
       totalPoints+=5;
     else if(possibleMoves[i].player.number == 0)
@@ -371,8 +372,8 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy){
   bp.points += totalPoints;
   
   // uncomment to see each point by position
-  print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
-      ' have ' + bp.points.toString() + ' points');
+  //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
+  //    ' have ' + bp.points.toString() + ' points');
   
   // Then we update the list
   listBestPositionsNeeded.removeAt(indexElem);
@@ -389,13 +390,14 @@ List<Position> getPossibleMoves(BestPosition bp){
   List<Position> positionList = new List<Position>();
   
   // We loop the list of positions
-  for(var i = 0;i < gameBoard.listPositions.length;i++){
+  for(int i = 0;i < gameBoard.listPositions.length;i++){
     
     // If we got the same square, check the proximity of the point
     if(bp.emplacement.square == gameBoard.listPositions[i].square){
       if(increaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value 
-          || decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value)
+          || decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value){
         positionList.add(gameBoard.listPositions[i]);
+      }
     }
     
     // if we are on a possible multi-line
@@ -403,15 +405,15 @@ List<Position> getPossibleMoves(BestPosition bp){
         || bp.emplacement.value == 5 || bp.emplacement.value == 7){
       switch(bp.emplacement.square){
         case 'G':
-          if(gameBoard.listPositions[i].square == 'M')
+          if(gameBoard.listPositions[i].square == 'M' && gameBoard.listPositions[i].value == bp.emplacement.value)
             positionList.add(gameBoard.listPositions[i]);
           break;
         case 'S':
-          if(gameBoard.listPositions[i].square == 'M')
+          if(gameBoard.listPositions[i].square == 'M' && gameBoard.listPositions[i].value == bp.emplacement.value)
             positionList.add(gameBoard.listPositions[i]);
           break;
         case 'M':
-          if(gameBoard.listPositions[i].square != 'M')
+          if(gameBoard.listPositions[i].square != 'M' && gameBoard.listPositions[i].value == bp.emplacement.value)
             positionList.add(gameBoard.listPositions[i]);
           break;
       }
@@ -428,6 +430,8 @@ List<Position> getPossibleMoves(BestPosition bp){
  * We check the line possibilities for now
  */
 void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
+  
+  
   
 }
 
