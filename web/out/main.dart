@@ -431,7 +431,136 @@ List<Position> getPossibleMoves(BestPosition bp){
  */
 void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
   
+  int totalPoints = 0;
+  List<int> listVals = [0,2,4,6];
   
+  /** 
+   * First : if the point is on 0-2-4 or 6 :
+   *   => We go to check the entire line :
+   *     --> with incrementation +1 and +2 
+   *     --> with decrementation -1 and -2
+   */
+  if(listVals.contains(bp.emplacement.value)){
+    
+    List<Position> positivePositionChecked = new List<Position>();
+    List<Position> negativePositionChecked = new List<Position>();
+    // We loop the list of positions
+    for(int i = 0;i < gameBoard.listPositions.length;i++){
+      
+      // We add the positive values
+      if(gameBoard.listPositions[i].square == bp.emplacement.square && 
+          (increaseNumber(bp.emplacement.value, 1) || (increaseNumber(bp.emplacement.value, 2)))){
+        positivePositionChecked.add(gameBoard.listPositions[i]);
+      }
+      
+      // We add the negative values
+      if(gameBoard.listPositions[i].square == bp.emplacement.square && 
+          (decreaseNumber(bp.emplacement.value, 1) || (decreaseNumber(bp.emplacement.value, 2)))){
+        negativePositionChecked.add(gameBoard.listPositions[i]);
+      }
+      
+    }
+    
+    if(positivePositionChecked[0].player.number != 0 && positivePositionChecked[0].player.number == positivePositionChecked[1].player.number){
+      if(positivePositionChecked[0].player.number == playerConcernedBy.number){
+        totalPoints += 4;
+      }else{
+        totalPoints += 3;
+      }
+    }
+    
+    if(negativePositionChecked[0].player.number != 0 && negativePositionChecked[0].player.number == negativePositionChecked[1].player.number){
+      if(negativePositionChecked[0].player.number == playerConcernedBy.number){
+        totalPoints += 4;
+      }else{
+        totalPoints += 3;
+      }
+    }
+    
+  }
+  
+  /**
+   * Second : if the point is on 1-3-5 or 7
+   *   --> We check the 'G' sup and minus (square, point +1) and (square, point - 1)
+   *   
+   *   => If the point is on 'G'
+   *     --> We check the 'M' and equal point number/We check the 'S' and equal point number
+   *   => If the point is on 'S'
+   *     --> We check the 'M' and equal point number/We check the 'S' and equal point number
+   *   => If the point is on 'M'
+   *     --> We check the 'S' and equal point number/We check the 'G' and equal point number
+   */
+  else{
+    
+    // First : we get the +1 position and the -1 position
+    List<Position> minusAndPlusPositions = new List<Position>();
+    List<Position> sameSquarePositions = new List<Position>();
+    
+    // We loop the list of positions
+    for(int i = 0;i < gameBoard.listPositions.length;i++){
+      
+      // in the same square
+      if(gameBoard.listPositions[i].square == bp.emplacement.square){
+        
+        if(increaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value
+            || decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value){
+          minusAndPlusPositions.add(gameBoard.listPositions[i]);
+        }
+        
+        
+      }else{
+        
+        switch(bp.emplacement.square){
+          case 'G':
+            if((gameBoard.listPositions[i].square == 'M' || gameBoard.listPositions[i].square == 'S') && gameBoard.listPositions[i].value == bp.emplacement.value)
+              sameSquarePositions.add(gameBoard.listPositions[i]);
+            break;
+          case 'S':
+            if((gameBoard.listPositions[i].square == 'M' || gameBoard.listPositions[i].square == 'G') && gameBoard.listPositions[i].value == bp.emplacement.value)
+              sameSquarePositions.add(gameBoard.listPositions[i]);
+            break;
+          case 'M':
+            if((gameBoard.listPositions[i].square == 'G' || gameBoard.listPositions[i].square == 'S') && gameBoard.listPositions[i].value == bp.emplacement.value)
+              sameSquarePositions.add(gameBoard.listPositions[i]);
+            break;
+        }
+      }
+      
+    }
+    
+    if(minusAndPlusPositions[0].player.number != 0 && minusAndPlusPositions[0].player.number == minusAndPlusPositions[1].player.number){
+      if(minusAndPlusPositions[0].player.number == playerConcernedBy.number){
+        totalPoints += 4;
+      }else{
+        totalPoints += 3;
+      }
+    }
+    
+    if(sameSquarePositions[0].player.number != 0 && sameSquarePositions[0].player.number == sameSquarePositions[1].player.number){
+      if(sameSquarePositions[0].player.number == playerConcernedBy.number){
+        totalPoints += 4;
+      }else{
+        totalPoints += 3;
+      }
+    }
+    
+  }
+  
+  
+  
+// Get the index
+  int indexElem = listBestPositionsNeeded.indexOf(bp);
+  
+  // We add the points to the BestPosition
+  bp.points += totalPoints;
+  
+  // uncomment to see each point by position
+  //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
+  //    ' have ' + bp.points.toString() + ' points');
+  
+  // Then we update the list
+  listBestPositionsNeeded.removeAt(indexElem);
+  listBestPositionsNeeded.add(bp);
   
 }
 
