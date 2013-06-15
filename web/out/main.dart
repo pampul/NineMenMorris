@@ -56,7 +56,7 @@ const TIMEOUT = const Duration(seconds: 1);
 // Set to 17 for the real game
 final int MIN_ITEMS_TO_DROP = 17;
 
-final int POINTS_FOR_OWN_MILL = 7;
+final int POINTS_FOR_OWN_MILL = 8;
 final int POINTS_FOR_ADV_MILL = 6;
 final int POINTS_FOR_NEUTRAL_POINT = 2;
 final int POINTS_FOR_OWN_POINT = 4;
