@@ -1,5 +1,5 @@
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
 import 'dart:math';
 import 'package:web_ui/web_ui.dart';
 import 'model/GameBoard.dart';
@@ -14,11 +14,22 @@ String message;
 
 // board of the game
 GameBoard gameBoard;
+// State of the game
+bool gameOver = false;
+
 // List of clickable elements
 List<Element> listPositionsElements;
 List<BestPosition> listBestPositionsNeeded;
 // Player turn
 int playerTurn = 0;
+const TIMEOUT = const Duration(seconds: 2);
+
+@observable
+int round = 1;
+Player currentPlayer;
+
+Position pos1;
+Position pos2;
 
 
 /**
@@ -80,36 +91,170 @@ void nodeClicked(Element e){
 
 
 /**
+ * Mothership who detect who's the next player
+ */
+void executeMothership(Player oldPlayer){
+  
+  round++;
+  
+  switch(oldPlayer.number){
+    
+    case 1:
+      if(gameBoard.player2.isIA)
+        letIAPlay(gameBoard.player2);
+      break;
+      
+    case 2:
+      if(gameBoard.player1.isIA)
+        letIAPlay(gameBoard.player1);
+      break;
+    
+  }
+  
+  return;
+  
+}
+
+
+/**
  * Let's play the IA player
  */
 void letIAPlay(Player player){
   
-  // Check if it's his turn
-  if(player.number == playerTurn || playerTurn == 0){
-    
-    // Set the player turn
-    playerTurn = player.number;
-    
-    message = 'Player ' + player.name + ' will playing ...';
+  if(!gameOver){
   
-    // Check the game step
-    if(gameBoard.gamePhase == 1){
-      // The IA must place a user in the board
-      // We check for the best position in the game
-      BestPosition p = getBestPosition(gameBoard.player0, player, false);
+    // Check if it's his turn
+    if(player.number == playerTurn || playerTurn == 0){
       
-      dropItem(p.emplacement, player);
+      // Set the current player
+      currentPlayer = player;
+      
+      // Set a timeout
+      Timer timer = new Timer(TIMEOUT, () => doIAStuffWithTimer(player));
+      
     }
-    
-    
-    
-    
-    // Then, check if a mill is built
-    print('Check mill ...');
   
   }
   
 }
+
+void doIAStuffWithTimer(Player player){
+  
+  doIAStuff(player);
+  return;
+  
+}
+
+
+void finishYourTurn(){
+  // Then, let the player play
+  playerTurn = 0;
+  message = 'Next gamer will play ...';
+  
+  // Check the gameStep
+  if(gameBoard.gamePhase != 2){
+    checkGameStep();
+  }
+
+  // Execute mothership to know who plays next
+  executeMothership(currentPlayer);
+}
+
+
+/**
+ * Check the state of the game
+ */
+void checkGameStep(){
+  // We check the current round
+  print('Round : ' + round.toString());
+  
+  if(round > 17){
+    gameBoard.gamePhase = 2;
+    print('Game step 2 enclenched ...');
+  }
+}
+
+/**
+ * Do game over
+ */
+void doGameOver(){
+  gameOver = true;
+}
+
+
+/**
+ * do IA stuff
+ */
+void doIAStuff(Player player){
+  
+  // Create a BestPosition
+  BestPosition bp = new BestPosition();
+  
+  // Set the player turn
+  playerTurn = player.number;
+  
+  message = 'Player ' + player.name + ' will playing ...';
+  
+  // Check the game step
+  if(gameBoard.gamePhase == 1){
+    // The IA must place a user in the board
+    // We check for the best position in the game
+    bp = getBestPosition(gameBoard.player0, player, false);
+    
+    dropItem(bp.emplacement, player);
+  }else if(gameBoard.gamePhase == 2){
+    // The IA must move an item in the board
+    // We check for the best position in the game
+    bp = getBestPosition(player, player, false);
+    
+    moveItem(bp, player);
+  }
+  
+  if(bp != null){
+  
+    // Then, check if a mill is freshly built
+    print('Check mill ...');
+    if(checkLinePossibilities(bp, player, true)){
+      // If it's a new mill, update items
+      int indexOfElement = gameBoard.listPositions.indexOf(bp.emplacement);
+      bp.emplacement.isMorris = true;
+      gameBoard.listPositions[indexOfElement] = bp.emplacement;
+      
+      indexOfElement = gameBoard.listPositions.indexOf(pos1);
+      bp.emplacement.isMorris = true;
+      gameBoard.listPositions[indexOfElement] = pos1;
+      
+      indexOfElement = gameBoard.listPositions.indexOf(pos2);
+      bp.emplacement.isMorris = true;
+      gameBoard.listPositions[indexOfElement] = pos2;
+      
+      print('We have a mill ... Delete a player item now !');
+      message = 'Mill detected ... We go to delete an item !';
+      
+      // Then, delete an adversary item
+      switch(player.number){
+        case 1:
+          Timer timer = new Timer(TIMEOUT, () => IADeleteItem(gameBoard.player2));
+          return;
+          break;
+          
+        case 2:
+          Timer timer = new Timer(TIMEOUT, () => IADeleteItem(gameBoard.player2));
+          return;
+          break;
+      }
+    }else{
+      Timer timer = new Timer(TIMEOUT, finishYourTurn);
+      return;
+    }
+  
+  }else{
+    Timer timer = new Timer(TIMEOUT, finishYourTurn);
+    return;
+  }
+  
+}
+
 
 /**
  * Get the index of the position
@@ -154,6 +299,8 @@ void IADeleteItem(Player adversary){
   
   // Then, we remove the item
   removeAnItem(bp.emplacement);
+  
+  finishYourTurn();
 }
 
 
@@ -211,9 +358,9 @@ void removeAnItem(Position p){
 /**
  * Move item function
  */
-void moveItem(Position pStart, Position pEnd){
+void moveItem(BestPosition bp, Player p){
   
-  
+  doGameOver();
   
 }
 
@@ -240,11 +387,19 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
   for(int i = 0;i < gameBoard.listPositions.length;i++){
     // If position concern the player, we add it
     if(gameBoard.listPositions[i].player.number == neededCasesPlayer.number){
-      //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
-      BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
-      //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
-      listBestPositionsNeeded.add(bestPos);
-      setPointsToPosition(bestPos, playerConcernedBy);
+      if(isAvailableToDelete && gameBoard.listPositions[i].isMorris == false){
+        //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
+        BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
+        //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
+        listBestPositionsNeeded.add(bestPos);
+        setPointsToPosition(bestPos, playerConcernedBy);
+      }else if(!isAvailableToDelete){
+        //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
+        BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
+        //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
+        listBestPositionsNeeded.add(bestPos);
+        setPointsToPosition(bestPos, playerConcernedBy);
+      }
     }
   }
   
@@ -304,7 +459,7 @@ void setPointsToPosition(BestPosition bp, Player playerConcernedBy){
   
   
   // Second step : check the lines possibilities
-  checkLinePossibilities(bp, playerConcernedBy);
+  checkLinePossibilities(bp, playerConcernedBy, false);
   
 }
 
@@ -402,7 +557,7 @@ List<Position> getPossibleMoves(BestPosition bp){
 /**
  * We check the line possibilities for now
  */
-void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
+bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMillCheck){
   
   int totalPoints = 0;
   List<int> listVals = [0,2,4,6];
@@ -422,13 +577,13 @@ void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
       
       // We add the positive values
       if(gameBoard.listPositions[i].square == bp.emplacement.square && 
-          (increaseNumber(bp.emplacement.value, 1) || (increaseNumber(bp.emplacement.value, 2)))){
+          (increaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value || (increaseNumber(bp.emplacement.value, 2)) == gameBoard.listPositions[i].value)){
         positivePositionChecked.add(gameBoard.listPositions[i]);
       }
       
       // We add the negative values
       if(gameBoard.listPositions[i].square == bp.emplacement.square && 
-          (decreaseNumber(bp.emplacement.value, 1) || (decreaseNumber(bp.emplacement.value, 2)))){
+          (decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value || (decreaseNumber(bp.emplacement.value, 2)) == gameBoard.listPositions[i].value)){
         negativePositionChecked.add(gameBoard.listPositions[i]);
       }
       
@@ -437,6 +592,11 @@ void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
     if(positivePositionChecked[0].player.number != 0 && positivePositionChecked[0].player.number == positivePositionChecked[1].player.number){
       if(positivePositionChecked[0].player.number == playerConcernedBy.number){
         totalPoints += 4;
+        if(isMillCheck){
+          pos1 = positivePositionChecked[0];
+          pos2 = positivePositionChecked[1];
+          return true;
+        }
       }else{
         totalPoints += 3;
       }
@@ -445,6 +605,11 @@ void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
     if(negativePositionChecked[0].player.number != 0 && negativePositionChecked[0].player.number == negativePositionChecked[1].player.number){
       if(negativePositionChecked[0].player.number == playerConcernedBy.number){
         totalPoints += 4;
+        if(isMillCheck){
+          pos1 = positivePositionChecked[0];
+          pos2 = positivePositionChecked[1];
+          return true;
+        }
       }else{
         totalPoints += 3;
       }
@@ -504,6 +669,11 @@ void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
     if(minusAndPlusPositions[0].player.number != 0 && minusAndPlusPositions[0].player.number == minusAndPlusPositions[1].player.number){
       if(minusAndPlusPositions[0].player.number == playerConcernedBy.number){
         totalPoints += 4;
+        if(isMillCheck){
+          pos1 = minusAndPlusPositions[0];
+          pos2 = minusAndPlusPositions[1];
+          return true;
+        }
       }else{
         totalPoints += 3;
       }
@@ -512,6 +682,11 @@ void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
     if(sameSquarePositions[0].player.number != 0 && sameSquarePositions[0].player.number == sameSquarePositions[1].player.number){
       if(sameSquarePositions[0].player.number == playerConcernedBy.number){
         totalPoints += 4;
+        if(isMillCheck){
+          pos1 = sameSquarePositions[0];
+          pos2 = sameSquarePositions[1];
+          return true;
+        }
       }else{
         totalPoints += 3;
       }
@@ -519,23 +694,28 @@ void checkLinePossibilities(BestPosition bp, Player playerConcernedBy){
     
   }
   
-  
-  
-// Get the index
-  int indexElem = listBestPositionsNeeded.indexOf(bp);
-  
-  // We add the points to the BestPosition
-  bp.points += totalPoints;
-  
-  // uncomment to see each point by position
-  //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
-  //    ' have ' + bp.points.toString() + ' points');
-  
-  // Then we update the list
-  listBestPositionsNeeded.removeAt(indexElem);
-  listBestPositionsNeeded.add(bp);
+  if(!isMillCheck){
+      
+    // Get the index
+    int indexElem = listBestPositionsNeeded.indexOf(bp);
+    
+    // We add the points to the BestPosition
+    bp.points += totalPoints;
+    
+    // uncomment to see each point by position
+    //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
+    //    ' have ' + bp.points.toString() + ' points');
+    
+    // Then we update the list
+    listBestPositionsNeeded.removeAt(indexElem);
+    listBestPositionsNeeded.add(bp);
+    
+  }else{
+    return false;
+  }
   
 }
+
 
 /**
  * Math function that applicate to the game
