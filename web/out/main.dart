@@ -70,7 +70,7 @@ set round(int value) {
 
 // -----------------------------------
 // Game constants
-const TIMEOUT = const Duration(seconds: 0);
+const TIMEOUT = const Duration(seconds: 2);
 // Set to 17 for the real game
 final int MIN_ITEMS_TO_DROP = 17;
 final int MAX_DEPTH = 2;
@@ -1011,9 +1011,9 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
   //print('Player : '+currentPlayer.number.toString() + ' - level : ' +currentPlayer.level.toString());
   for(int i = 0;i < listBestPositionsNeeded.length;i++){
     if(!isAvailableToDeleteBool){
-      //print('Position : '+listBestPositionsNeeded[i].emplacement.square+'-'+
-      //    listBestPositionsNeeded[i].emplacement.value.toString()+' | points : '+
-      //    listBestPositionsNeeded[i].points.toString());
+      print('Position : '+listBestPositionsNeeded[i].emplacement.square+'-'+
+          listBestPositionsNeeded[i].emplacement.value.toString()+' | points : '+
+          listBestPositionsNeeded[i].points.toString());
       if(currentPlayer.level == 3){
         if(listBestPositionsNeeded[i].points == maxPositionPoints){
           bpList.add(listBestPositionsNeeded[i]);
@@ -1083,8 +1083,10 @@ void setPointsToPosition(BestPosition bp, Player playerConcernedBy, bool ignoreS
       for(int k=0;k< recursionPossibleMoves.length;k++){
         BestPosition fakeBp = new BestPosition(0, recursionPossibleMoves[k]);
         fakeBp.startEmplacement = recursionBP.emplacement;
-        setPointsToPosition(fakeBp, playerConcernedBy, ignoreStep2);
         
+        isRecursion = false;
+        setPointsToPosition(fakeBp, playerConcernedBy, ignoreStep2);
+        isRecursion = true;
       }
     }
   }
@@ -1137,8 +1139,10 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
     //    ' have ' + bp.points.toString() + ' points');
     
     // Then we update the list
-    listBestPositionsNeeded.removeAt(indexElem);
-    listBestPositionsNeeded.add(bp);
+    if(indexElem != -1){
+      listBestPositionsNeeded.removeAt(indexElem);
+      listBestPositionsNeeded.add(bp);
+    }
   }else{
     // Get the index
     indexElem = listBestPositionsNeeded.indexOf(recursionBP);
@@ -1481,9 +1485,11 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
         //    ' have ' + bp.points.toString() + ' points');
         
-        // Then we update the list
-        listBestPositionsNeeded.removeAt(indexElem);
-        listBestPositionsNeeded.add(bp);
+        if(indexElem != -1){
+          // Then we update the list
+          listBestPositionsNeeded.removeAt(indexElem);
+          listBestPositionsNeeded.add(bp);
+        }
         
       }else{
         // Get the index
