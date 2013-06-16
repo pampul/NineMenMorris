@@ -125,6 +125,7 @@ class GameBoard{
   void selectScenariAndLevel(int typeScenari, int lvl){
     
     level = lvl;
+    print('--------------------------------');
     if(typeScenari == 1){
       // Scenari 1 : we play with 2 IA
       player1.isIA = true;
@@ -132,6 +133,7 @@ class GameBoard{
       player2.isIA = true;
       player2.level = 1;
       scenariType = 1;
+      print('IA lvl 3 vs IA lvl 1');
     }else if(typeScenari == 2){
       // Scenari 2 : we play with one player / one IA
       player1.isIA = false;
@@ -139,13 +141,15 @@ class GameBoard{
       player2.isIA = true;
       player2.level = 3;
       scenariType = 2;
+      print('Player vs IA lvl 3');
     }else if(typeScenari == 3){
       // Scenari 3 : Player VS IA level 2
       player1.isIA = false;
       player1.level = 3;
       player2.isIA = true;
-      player2.level = 2;
+      player2.level = 1;
       scenariType = 3;
+      print('Player vs IA lvl 1');
     }else{
       // Scenari 3 : we play with 2 players
       player1.isIA = false;
@@ -153,7 +157,9 @@ class GameBoard{
       player2.isIA = false;
       player2.level = 3;
       scenariType = 3;
+      print('Player vs Player');
     }
+    print('--------------------------------');
     
   }
   
