@@ -132,13 +132,20 @@ class GameBoard{
       player2.isIA = true;
       player2.level = 1;
       scenariType = 1;
-    }else{
+    }else if(typeScenari == 2){
       // Scenari 2 : we play with one player / one IA
       player1.isIA = false;
       player1.level = 3;
       player2.isIA = true;
       player2.level = 3;
       scenariType = 2;
+    }else{
+      // Scenari 3 : we play with 2 players
+      player1.isIA = false;
+      player1.level = 3;
+      player2.isIA = false;
+      player2.level = 3;
+      scenariType = 3;
     }
     
   }

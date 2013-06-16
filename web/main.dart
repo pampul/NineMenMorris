@@ -22,12 +22,14 @@ List<Element> listPositionsElements;
 List<BestPosition> listBestPositionsNeeded;
 // Player turn
 int playerTurn = 0;
+bool millWaiting = false;
+Element selectedItem;
 
 // -----------------------------------
 // Game constants
-const TIMEOUT = const Duration(seconds: 1);
+const TIMEOUT = const Duration(seconds: 0);
 // Set to 17 for the real game
-final int MIN_ITEMS_TO_DROP = 17;
+final int MIN_ITEMS_TO_DROP = 7;
 
 final int POINTS_FOR_OWN_MILL = 8;
 final int POINTS_FOR_ADV_MILL = 6;
@@ -61,7 +63,7 @@ void main() {
   gameBoard.init();
   
   // Select a game type
-  gameBoard.selectScenariAndLevel(1, 1);
+  gameBoard.selectScenariAndLevel(3, 1);
   
   // Select a level (1 or 2)
   gameBoard.level = 1;
@@ -93,9 +95,14 @@ void init(){
   
   round++;
   
-  // If scenari 1 : let's IA play !!
-  if(gameBoard.scenariType == 1)
+  // If player 1 is IA : let's IA play !!
+  if(gameBoard.player1.isIA)
     letIAPlay(gameBoard.player1);
+  else{
+    currentPlayer = gameBoard.player1;
+    message = 'Your turn : click on a node to drop an item !';
+  }
+    
   
 }
 
@@ -104,6 +111,298 @@ void init(){
  * Action followed the clicked node
  */
 void nodeClicked(Element e){
+  
+  if(!gameOver){
+    // Check if it's his turn
+    if(playerTurn == 0){
+      
+      if(gameBoard.gamePhase == 1){
+        // The only possibility is to drop an item if no mill detected
+        if(!millWaiting)
+          dropPlayerItem(currentPlayer, e);
+        else
+          millDeleteItem(currentPlayer, e);
+        return;
+      }else{
+        
+        // We want to select, unselect, move or delete an item !
+        if(!millWaiting){
+          
+          // Check if there is a selected item
+          if(selectedItem != null){
+            checkForMovePlayerItem(currentPlayer, e);
+          }else{
+            playerSelectAnItem(currentPlayer, e);
+          }
+          
+          
+        }else
+          millDeleteItem(currentPlayer, e);
+        return;
+        
+      }
+  
+    }else{
+      window.alert('Wait for your turn !');
+      return;
+    }
+  }else
+    return;
+  
+}
+
+
+/**
+ * Check if the position selected is a move
+ */
+void checkForMovePlayerItem(Player player, Element e){
+  
+// We get the position thanks to the Element
+  Position p = getPosition(e);
+  
+  if(p.square != null){
+    
+    // If the player select his own position
+    if(p.player.number == player.number){
+      playerSelectAnItem(player, e);
+    }else if(p.player.number == 0){
+      // We check if we can move
+      BestPosition fakeBp = new BestPosition(0, getPosition(selectedItem));
+      fakeBp.startEmplacement = getPosition(selectedItem);
+      
+      if(player.isGamePhase3){
+        // We can move here !
+        BestPosition bp = new BestPosition(0, p);
+        bp.startEmplacement = getPosition(selectedItem);
+        // If the position is empty, we can drop !
+        moveItem(bp, player);
+        
+        // position become a BestPosition
+        BestPosition bpFake = new BestPosition(0, p);
+        
+        // Then, check if a mill is freshly built
+        //print('Check mill ...');
+        if(checkLinePossibilities(bpFake, player, true, true)){
+          // If it's a new mill, update items
+          updatePositionsToMill(bpFake.emplacement, true);
+          
+          print('We have a mill ... Delete a player item now !');
+          message = 'Mill detected ... You can delete an adversary item !';
+          
+          millWaiting = true;
+          unSelectAllItems();
+          
+        }else{
+          finishYourTurn();
+        }
+      }else{
+        
+        List<Position> listPossiblePositions = getPossibleMoves(fakeBp, true);
+        
+        if(listPossiblePositions.length > 0){
+          
+          if(listPossiblePositions.contains(p)){
+            // We can move here !
+            BestPosition bp = new BestPosition(0, p);
+            bp.startEmplacement = getPosition(selectedItem);
+            // If the position is empty, we can drop !
+            moveItem(bp, player);
+
+            // position become a BestPosition
+            BestPosition bpFake = new BestPosition(0, p);
+            
+            // Then, check if a mill is freshly built
+            //print('Check mill ...');
+            if(checkLinePossibilities(bpFake, player, true, true)){
+              // If it's a new mill, update items
+              updatePositionsToMill(bpFake.emplacement, true);
+              
+              print('We have a mill ... Delete a player item now !');
+              message = 'Mill detected ... You can delete an adversary item !';
+              
+              millWaiting = true;
+              
+            }else{
+              finishYourTurn();
+            }
+          }
+          
+        }else{
+          print('No possible moves ...');
+          window.alert('No possible moves ...');
+        }
+        
+      }
+      
+    }else{
+      print('Position is owned by an adversary : impossible move');
+      window.alert('Position is owned by an adversary : impossible move');
+    }
+    
+  }else{
+    print('No position !');
+    window.alert('Erreur !');
+  }
+  
+}
+
+
+/**
+ * Select an item you want to move
+ */
+void playerSelectAnItem(Player player, Element e){
+  
+  // We get the position thanks to the Element
+  Position p = getPosition(e);
+  
+  if(p.square != null){
+    
+    if(p.player.number == player.number){
+      if(selectedItem != null && selectedItem.attributes["data-square"] == e.attributes["data-square"] 
+      && selectedItem.attributes["data-value"] == e.attributes["data-value"]){
+        // We unselect the element
+        unSelectAllItems();
+      }else{
+        unSelectAllItems();
+        e.classes.add("selected");
+        selectedItem = e;
+      }
+    }
+    
+  }else{
+    print('No position !');
+    window.alert('Erreur !');
+  }
+  
+}
+
+
+void unSelectAllItems(){
+  
+  // First : set to null the element
+  selectedItem = null;
+  
+  // Then, unSelect all cases
+  queryAll('.playable').forEach((Element e){
+    if(e.classes.contains("selected"))
+      e.classes.remove("selected");
+  });
+  
+}
+
+
+/**
+ * Drop player item function
+ */
+void dropPlayerItem(Player player, Element e){
+  
+  // We get the position thanks to the Element
+  Position p = getPosition(e);
+  
+  if(p.square != null){
+    
+    if(p.player.number == 0){
+    
+      // If the position is empty, we can drop !
+      dropItem(p, player);
+      
+      // position become a BestPosition
+      BestPosition bpFake = new BestPosition(0, p);
+      
+      // Then, check if a mill is freshly built
+      //print('Check mill ...');
+      if(checkLinePossibilities(bpFake, player, true, true)){
+        // If it's a new mill, update items
+        updatePositionsToMill(bpFake.emplacement, true);
+        
+        print('We have a mill ... Delete a player item now !');
+        message = 'Mill detected ... You can delete an adversary item !';
+        
+        millWaiting = true;
+        
+      }else{
+        finishYourTurn();
+      }
+    
+    }else{
+      print('Position not empty !');
+      window.alert('Please select an empty position');
+    }
+    
+    
+  }else{
+    print('No position !');
+    window.alert('Erreur !');
+  }
+  
+}
+
+/**
+ * Drop a player item
+ */
+void millDeleteItem(Player player, Element e){
+  
+  // We get the position thanks to the Element
+  Position p = getPosition(e);
+  
+  if(p.square != null){
+    
+    // Check if the position is deletable
+    if(p.player.number != 0 && p.player.number != player.number){
+      
+      // Check if the position is on a mill
+      if(!p.isMorris){
+        
+        // Delete the item
+        removeAnItem(p);
+        
+        // Finish your turn and stop the mill check
+        millWaiting = false;
+        finishYourTurn();
+        
+      }else{
+        print('Position is on a mill !');
+        window.alert('That item is on a mill : You can\'t delete it !');
+        
+        // Check if there is only mill for the adversary
+        checkOnlyMill(player);
+      }
+      
+      
+    }else{
+      print('Position is not an adversary !');
+      window.alert('That position isn\'t an adversary !');
+    }
+    
+    
+  }else{
+    print('No position !');
+    window.alert('Erreur !');
+  }
+  
+}
+
+
+/**
+ * Check if there is only mills to adversary
+ */
+void checkOnlyMill(Player p){
+  
+  var countFree = 0;
+  for(int i = 0;i < gameBoard.listPositions.length;i++){
+    
+    if(gameBoard.listPositions[i].player.number != p.number && gameBoard.listPositions[i].player.number != 0
+        && !gameBoard.listPositions[i].isMorris)
+      countFree++;
+    
+  }
+  
+  if(countFree == 0){
+    window.alert('There is only mill on the game ... You can\'t delete an item !');
+    millWaiting = false;
+    finishYourTurn();
+  }
+  return;
   
 }
 
@@ -120,11 +419,15 @@ void executeMothership(Player oldPlayer){
     case 1:
       if(gameBoard.player2.isIA)
         letIAPlay(gameBoard.player2);
+      else
+        currentPlayer = gameBoard.player2;
       break;
       
     case 2:
       if(gameBoard.player1.isIA)
         letIAPlay(gameBoard.player1);
+      else
+        currentPlayer = gameBoard.player1;
       break;
     
   }
@@ -169,6 +472,8 @@ void finishYourTurn(){
   // Then, let the player play
   playerTurn = 0;
   message = 'Next gamer will play ...';
+  
+  unSelectAllItems();
   
   // Check the gameStep
   checkGameStep();
@@ -342,6 +647,21 @@ Element getCaseByPosition(Position p){
       break;
     }
   };
+}
+
+/**
+ * Get a position by case element
+ */
+Position getPosition(Element e){
+  return gameBoard.listPositions.firstWhere((Position position){
+    if(position.square == e.attributes["data-square"] && position.value.toString() == e.attributes["data-value"]){
+      return true;
+    }else
+      return false;
+  }, orElse: (){
+    print('No position founded for the case ...');
+    return new Position();
+  });
 }
 
 
