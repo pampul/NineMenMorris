@@ -102,7 +102,7 @@ void main() {
   gameBoard.init();
   
   // Select a game type
-  gameBoard.selectScenariAndLevel(2, 1);
+  gameBoard.selectScenariAndLevel(4, 1);
   
   // Select a level (1 or 2)
   gameBoard.level = 1;
@@ -225,7 +225,7 @@ void checkForMovePlayerItem(Player player, Element e){
           // If it's a new mill, update items
           updatePositionsToMill(bpFake.emplacement, true);
           
-          print('We have a mill ... Delete a player item now !');
+          //print('We have a mill ... Delete a player item now !');
           message = 'Mill detected ... You can delete an adversary item !';
           
           millWaiting = true;
@@ -256,7 +256,7 @@ void checkForMovePlayerItem(Player player, Element e){
               // If it's a new mill, update items
               updatePositionsToMill(bpFake.emplacement, true);
               
-              print('We have a mill ... Delete a player item now !');
+              //print('We have a mill ... Delete a player item now !');
               message = 'Mill detected ... You can delete an adversary item !';
               
               millWaiting = true;
@@ -355,7 +355,7 @@ void dropPlayerItem(Player player, Element e){
         // If it's a new mill, update items
         updatePositionsToMill(bpFake.emplacement, true);
         
-        print('We have a mill ... Delete a player item now !');
+        //print('We have a mill ... Delete a player item now !');
         message = 'Mill detected ... You can delete an adversary item !';
         
         millWaiting = true;
@@ -561,6 +561,13 @@ void checkGameStep(){
     }
   }
   
+  // Log if you want to know the actual mills
+  for(int i=0;i<gameBoard.listPositions.length;i++){
+    if(gameBoard.listPositions[i].isMorris){
+      print('Position : '+gameBoard.listPositions[i].square+'-'+gameBoard.listPositions[i].value.toString()+' is in a mill');
+    }
+  }
+  
 }
 
 /**
@@ -634,7 +641,7 @@ void doIAStuff(Player player){
       // If it's a new mill, update items
       updatePositionsToMill(bp.emplacement, true);
       
-      print('We have a mill ... Delete a player item now !');
+      //print('We have a mill ... Delete a player item now !');
       message = 'Mill detected ... We go to delete an item !';
       
       // Then, delete an adversary item
@@ -825,7 +832,7 @@ void moveItem(BestPosition bp, Player p){
 void updatePositionsToMill(Position p, bool newVal){
   
   int indexOfElement = gameBoard.listPositions.indexOf(p);
-  p.isMorris = false;
+  p.isMorris = newVal;
   gameBoard.listPositions[indexOfElement] = p;
   
   if(pos1.player != null){
@@ -847,6 +854,18 @@ void updatePositionsToMill(Position p, bool newVal){
     indexOfElement = gameBoard.listPositions.indexOf(pos4);
     pos4.isMorris = newVal;
     gameBoard.listPositions[indexOfElement] = pos4;
+  }
+  
+  // You just make a mill in :
+  if(pos3.player != null && pos4.player != null){
+    print('You just make a mill in : ' + p.square + '-'+p.value.toString()
+        + ' | ' + pos3.square + '-' + pos3.value.toString()
+        + ' | ' + pos4.square + '-' + pos4.value.toString());
+  }
+  if(pos1.player != null && pos2.player != null){
+    print('You just make a mill in : ' + p.square + '-'+p.value.toString()
+        + ' | ' + pos1.square + '-' + pos1.value.toString()
+        + ' | ' + pos2.square + '-' + pos2.value.toString());
   }
 }
 
@@ -1224,8 +1243,8 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         if(negativePositionChecked[0].player.number == playerConcernedBy.number){
           totalPoints += POINTS_FOR_OWN_MILL;
           if(isMillCheck){
-            pos3 = positivePositionChecked[0];
-            pos4 = positivePositionChecked[1];
+            pos3 = negativePositionChecked[0];
+            pos4 = negativePositionChecked[1];
             return true;
           }
         }else{

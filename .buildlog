@@ -4926,3 +4926,136 @@ Total time spent on web/index.html                           -- 506 ms
 Total time                                                   -- 531 ms
 build.dart finished [775 ms]
 
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 521 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 546 ms
+build.dart finished [866 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 509 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 533 ms
+build.dart finished [777 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 509 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 533 ms
+build.dart finished [778 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 511 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 535 ms
+build.dart finished [779 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 511 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 535 ms
+build.dart finished [781 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 510 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 534 ms
+build.dart finished [782 ms]
+
+---
+build.dart --machine --changed=web/model/GameBoard.dart
+Total time spent on web/index.html                           -- 510 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 534 ms
+build.dart finished [779 ms]
+
+---
+build.dart --machine --changed=web/model/GameBoard.dart
+Total time spent on web/index.html                           -- 513 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 537 ms
+build.dart finished [781 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 531 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 555 ms
+build.dart finished [801 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 512 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 537 ms
+build.dart finished [786 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 504 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 527 ms
+build.dart finished [776 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 516 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 540 ms
+build.dart finished [786 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 510 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 534 ms
+build.dart finished [782 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 509 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 533 ms
+build.dart finished [779 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 513 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 537 ms
+build.dart finished [785 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 522 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 547 ms
+build.dart finished [793 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 507 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 532 ms
+build.dart finished [779 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 505 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 529 ms
+build.dart finished [774 ms]
+
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 511 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 535 ms
+build.dart finished [780 ms]
+
