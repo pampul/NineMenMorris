@@ -70,9 +70,9 @@ set round(int value) {
 
 // -----------------------------------
 // Game constants
-const TIMEOUT = const Duration(seconds: 1);
+const TIMEOUT = const Duration(seconds: 0);
 // Set to 17 for the real game
-final int MIN_ITEMS_TO_DROP = 7;
+final int MIN_ITEMS_TO_DROP = 11;
 final int MAX_DEPTH = 2;
 
 final int POINTS_FOR_OWN_MILL = 26;
@@ -1105,6 +1105,7 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
   
   // We loop the positions to give points
   int totalPoints = 0;
+  print(possibleMoves.length.toString()+' length');
   for(int i = 0;i < possibleMoves.length;i++){
     // One movement += 1 point
     totalPoints += POINTS_FOR_ONE_POINT;
@@ -1140,8 +1141,8 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
     recursionBP.points += totalPoints;
     
     // uncomment to see each point by position
-    //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
-    //    ' have ' + bp.points.toString() + ' points');
+    //print('Position ' + recursionBP.emplacement.square + '-' + recursionBP.emplacement.value.toString() +
+    //    ' have ' + recursionBP.points.toString() + ' points');
     
     // Then we update the list
     listBestPositionsNeeded.removeAt(indexElem);
@@ -1167,8 +1168,9 @@ List<Position> getPossibleMoves(BestPosition bp, bool ignoreStep2){
           || decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value){
         if(gameBoard.gamePhase == 2 && !ignoreStep2){
           // Check if the point is the started point to move
-          if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+          if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square){
             positionList.add(gameBoard.listPositions[i]);
+          }
         }else{
           positionList.add(gameBoard.listPositions[i]);
         }
@@ -1183,7 +1185,7 @@ List<Position> getPossibleMoves(BestPosition bp, bool ignoreStep2){
           if(gameBoard.listPositions[i].square == 'M' && gameBoard.listPositions[i].value == bp.emplacement.value){
             if(gameBoard.gamePhase == 2 && !ignoreStep2){
               // Check if the point is the started point to move
-              if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+              if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
                 positionList.add(gameBoard.listPositions[i]);
             }else{
               positionList.add(gameBoard.listPositions[i]);
@@ -1194,7 +1196,7 @@ List<Position> getPossibleMoves(BestPosition bp, bool ignoreStep2){
           if(gameBoard.listPositions[i].square == 'M' && gameBoard.listPositions[i].value == bp.emplacement.value){
             if(gameBoard.gamePhase == 2 && !ignoreStep2){
               // Check if the point is the started point to move
-              if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+              if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
                 positionList.add(gameBoard.listPositions[i]);
             }else{
               positionList.add(gameBoard.listPositions[i]);
@@ -1205,7 +1207,7 @@ List<Position> getPossibleMoves(BestPosition bp, bool ignoreStep2){
           if(gameBoard.listPositions[i].square != 'M' && gameBoard.listPositions[i].value == bp.emplacement.value){
             if(gameBoard.gamePhase == 2 && !ignoreStep2){
               // Check if the point is the started point to move
-              if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+              if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
                 positionList.add(gameBoard.listPositions[i]);
             }else{
               positionList.add(gameBoard.listPositions[i]);
@@ -1252,7 +1254,7 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
           (increaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value || (increaseNumber(bp.emplacement.value, 2)) == gameBoard.listPositions[i].value)){
         if(gameBoard.gamePhase == 2 && !ignoreStep2){
           // Check if the point is the started point to move
-          if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+          if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
             positivePositionChecked.add(gameBoard.listPositions[i]);
         }else{
           positivePositionChecked.add(gameBoard.listPositions[i]);
@@ -1264,7 +1266,7 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
           (decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value || (decreaseNumber(bp.emplacement.value, 2)) == gameBoard.listPositions[i].value)){
         if(gameBoard.gamePhase == 2 && !ignoreStep2){
           // Check if the point is the started point to move
-          if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+          if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
             negativePositionChecked.add(gameBoard.listPositions[i]);
         }else{
           negativePositionChecked.add(gameBoard.listPositions[i]);
@@ -1332,7 +1334,7 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
             || decreaseNumber(bp.emplacement.value, 1) == gameBoard.listPositions[i].value){
           if(gameBoard.gamePhase == 2 && !ignoreStep2){
             // Check if the point is the started point to move
-            if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+            if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
               minusAndPlusPositions.add(gameBoard.listPositions[i]);
           }else{
             minusAndPlusPositions.add(gameBoard.listPositions[i]);
@@ -1347,7 +1349,7 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
             if((gameBoard.listPositions[i].square == 'M' || gameBoard.listPositions[i].square == 'S') && gameBoard.listPositions[i].value == bp.emplacement.value){
               if(gameBoard.gamePhase == 2 && !ignoreStep2){
                 // Check if the point is the started point to move
-                if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+                if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
                   sameSquarePositions.add(gameBoard.listPositions[i]);
               }else{
                 sameSquarePositions.add(gameBoard.listPositions[i]);
@@ -1358,7 +1360,7 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
             if((gameBoard.listPositions[i].square == 'M' || gameBoard.listPositions[i].square == 'G') && gameBoard.listPositions[i].value == bp.emplacement.value){
               if(gameBoard.gamePhase == 2 && !ignoreStep2){
                 // Check if the point is the started point to move
-                if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+                if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
                   sameSquarePositions.add(gameBoard.listPositions[i]);
               }else{
                 sameSquarePositions.add(gameBoard.listPositions[i]);
@@ -1369,7 +1371,7 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
             if((gameBoard.listPositions[i].square == 'G' || gameBoard.listPositions[i].square == 'S') && gameBoard.listPositions[i].value == bp.emplacement.value){
               if(gameBoard.gamePhase == 2 && !ignoreStep2){
                 // Check if the point is the started point to move
-                if(gameBoard.listPositions[i].value != bp.startEmplacement.value && gameBoard.listPositions[i].square != bp.startEmplacement.square)
+                if(gameBoard.listPositions[i].value != bp.startEmplacement.value || gameBoard.listPositions[i].square != bp.startEmplacement.square)
                   sameSquarePositions.add(gameBoard.listPositions[i]);
               }else{
                 sameSquarePositions.add(gameBoard.listPositions[i]);
