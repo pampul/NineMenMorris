@@ -6871,3 +6871,22 @@ Total time spent on web/index.html                           -- 847 ms
 Total time                                                   -- 871 ms
 build.dart finished [1109 ms]
 
+---
+build.dart --machine --changed=deploy/css/bootstrap-responsive.min.css --changed=deploy/css/bootstrap.min.css -...
+Total time spent on web/index.html                           -- 859 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 884 ms
+build.dart finished [1129 ms]
+
+---
+build.dart --machine --changed=deploy/main.dart.js
+Total time                                                   --  18 ms
+build.dart finished [256 ms]
+
+---
+build.dart --machine --changed=deploy/main.dart
+Total time spent on web/index.html                           -- 855 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 878 ms
+build.dart finished [1116 ms]
+
