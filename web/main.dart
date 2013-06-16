@@ -29,12 +29,12 @@ Element selectedItem;
 // Game constants
 const TIMEOUT = const Duration(seconds: 0);
 // Set to 17 for the real game
-final int MIN_ITEMS_TO_DROP = 7;
+final int MIN_ITEMS_TO_DROP = 17;
 
-final int POINTS_FOR_OWN_MILL = 8;
-final int POINTS_FOR_ADV_MILL = 6;
+final int POINTS_FOR_OWN_MILL = 26;
+final int POINTS_FOR_ADV_MILL = 10;
 final int POINTS_FOR_NEUTRAL_POINT = 2;
-final int POINTS_FOR_OWN_POINT = 4;
+final int POINTS_FOR_OWN_POINT = 6;
 final int POINTS_FOR_ADV_POINT = 5;
 final int POINTS_FOR_ONE_POINT = 1;
 // -----------------------------------
@@ -63,7 +63,7 @@ void main() {
   gameBoard.init();
   
   // Select a game type
-  gameBoard.selectScenariAndLevel(3, 1);
+  gameBoard.selectScenariAndLevel(2, 1);
   
   // Select a level (1 or 2)
   gameBoard.level = 1;
@@ -221,6 +221,7 @@ void checkForMovePlayerItem(Player player, Element e){
               message = 'Mill detected ... You can delete an adversary item !';
               
               millWaiting = true;
+              unSelectAllItems();
               
             }else{
               finishYourTurn();
