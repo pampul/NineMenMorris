@@ -72,7 +72,7 @@ set round(int value) {
 // Game constants
 const TIMEOUT = const Duration(seconds: 0);
 // Set to 17 for the real game
-final int MIN_ITEMS_TO_DROP = 11;
+final int MIN_ITEMS_TO_DROP = 17;
 final int MAX_DEPTH = 2;
 
 final int POINTS_FOR_OWN_MILL = 26;
@@ -81,6 +81,8 @@ final int POINTS_FOR_NEUTRAL_POINT = 2;
 final int POINTS_FOR_OWN_POINT = 6;
 final int POINTS_FOR_ADV_POINT = 5;
 final int POINTS_FOR_ONE_POINT = 1;
+final int POINTS_FOR_TWO_ITEMS_SAME_LINE = 6;
+final int POINTS_FOR_UNUSED_LINE = 4;
 // -----------------------------------
 
 // board of the game
@@ -99,6 +101,7 @@ Element selectedItem;
 int currentDepth = 0;
 int droppedItems = 0;
 bool isRecursion = false;
+bool isAvailableToDeleteBool = false;
 BestPosition recursionBP;
 List<Position> recursionPossibleMoves;
 Player currentPlayer;
@@ -122,7 +125,7 @@ void main() {
   gameBoard.init();
   
   // Select a game type
-  gameBoard.selectScenariAndLevel(2, 1);
+  gameBoard.selectScenariAndLevel(1, 1);
   
   // Then, start the game
   init();
@@ -906,6 +909,8 @@ void updatePositionsToMill(Position p, bool newVal){
  */
 BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy, bool isAvailableToDelete){
 
+  isAvailableToDeleteBool = isAvailableToDelete;
+  
   BestPosition worstEnv = new BestPosition();
   if(gameBoard.gamePhase == 2 && currentPlayer.isGamePhase3)
     worstEnv = getWorstEnv(currentPlayer);
@@ -919,12 +924,12 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
    * OR
    * player wants to delete an item
    */
-  if(gameBoard.gamePhase == 1 || isAvailableToDelete){
+  if(gameBoard.gamePhase == 1 || isAvailableToDeleteBool){
     // We list the whole positions needed
     for(int i = 0;i < gameBoard.listPositions.length;i++){
       // If position concern the player, we add it
       if(gameBoard.listPositions[i].player.number == neededCasesPlayer.number){
-        if(isAvailableToDelete && gameBoard.listPositions[i].isMorris == false){
+        if(isAvailableToDeleteBool && gameBoard.listPositions[i].isMorris == false){
           //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
           BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
           //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
@@ -932,7 +937,7 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
           currentDepth = 0;
           isRecursion = false;
           setPointsToPosition(bestPos, playerConcernedBy, true);
-        }else if(!isAvailableToDelete){
+        }else if(!isAvailableToDeleteBool){
           //print('Position checked : ' + gameBoard.listPositions[i].square + '-'+gameBoard.listPositions[i].value.toString());
           BestPosition bestPos = new BestPosition(0, gameBoard.listPositions[i]);
           //print('Position checked : ' + bestPos.emplacement.square + '-'+bestPos.emplacement.value.toString());
@@ -1005,10 +1010,10 @@ BestPosition getBestPosition(Player neededCasesPlayer, Player playerConcernedBy,
   int maxPositionPoints = 0;
   //print('Player : '+currentPlayer.number.toString() + ' - level : ' +currentPlayer.level.toString());
   for(int i = 0;i < listBestPositionsNeeded.length;i++){
-    if(!isAvailableToDelete){
-      print('Position : '+listBestPositionsNeeded[i].emplacement.square+'-'+
-          listBestPositionsNeeded[i].emplacement.value.toString()+' | points : '+
-          listBestPositionsNeeded[i].points.toString());
+    if(!isAvailableToDeleteBool){
+      //print('Position : '+listBestPositionsNeeded[i].emplacement.square+'-'+
+      //    listBestPositionsNeeded[i].emplacement.value.toString()+' | points : '+
+      //    listBestPositionsNeeded[i].points.toString());
       if(currentPlayer.level == 3){
         if(listBestPositionsNeeded[i].points == maxPositionPoints){
           bpList.add(listBestPositionsNeeded[i]);
@@ -1105,7 +1110,7 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
   
   // We loop the positions to give points
   int totalPoints = 0;
-  print(possibleMoves.length.toString()+' length');
+  // print(possibleMoves.length.toString()+' length');
   for(int i = 0;i < possibleMoves.length;i++){
     // One movement += 1 point
     totalPoints += POINTS_FOR_ONE_POINT;
@@ -1119,9 +1124,10 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
       totalPoints+=POINTS_FOR_ADV_POINT;
   }
   
+  int indexElem;
   if(!isRecursion){
     // Get the index
-    int indexElem = listBestPositionsNeeded.indexOf(bp);
+    indexElem = listBestPositionsNeeded.indexOf(bp);
     
     // We add the points to the BestPosition
     bp.points += totalPoints;
@@ -1135,7 +1141,7 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
     listBestPositionsNeeded.add(bp);
   }else{
     // Get the index
-    int indexElem = listBestPositionsNeeded.indexOf(recursionBP);
+    indexElem = listBestPositionsNeeded.indexOf(recursionBP);
     
     // We add the points to the BestPosition
     recursionBP.points += totalPoints;
@@ -1145,8 +1151,10 @@ void checkBestPositionPossibilities(BestPosition bp, Player playerConcernedBy, b
     //    ' have ' + recursionBP.points.toString() + ' points');
     
     // Then we update the list
-    listBestPositionsNeeded.removeAt(indexElem);
-    listBestPositionsNeeded.add(recursionBP);
+    if(indexElem != -1){
+      listBestPositionsNeeded.removeAt(indexElem);
+      listBestPositionsNeeded.add(recursionBP);
+    }
   }
 }
 
@@ -1230,6 +1238,8 @@ List<Position> getPossibleMoves(BestPosition bp, bool ignoreStep2){
 bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMillCheck, bool ignoreStep2){
   
   int totalPoints = 0;
+  int twoInLinePoints = 0;
+  int twoInDeadLine = 0;
   List<int> listVals = [0,2,4,6];
   pos1 = new Position();
   pos2 = new Position();
@@ -1288,6 +1298,17 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
           totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
+      else if(positivePositionChecked[0].player.number == playerConcernedBy.number 
+          || positivePositionChecked[1].player.number == playerConcernedBy.number){
+        
+        if((positivePositionChecked[0].player.number != 0 && positivePositionChecked[0].player.number != playerConcernedBy.number) 
+            || (positivePositionChecked[1].player.number != 0 && positivePositionChecked[1].player.number != playerConcernedBy.number))
+          twoInDeadLine += POINTS_FOR_UNUSED_LINE;
+        else
+          twoInLinePoints += POINTS_FOR_TWO_ITEMS_SAME_LINE;
+        
+      }
+      
     }
     
     if(negativePositionChecked.length == 2){
@@ -1302,6 +1323,15 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         }else{
           totalPoints += POINTS_FOR_ADV_MILL;
         }
+      }
+      else if(negativePositionChecked[0].player.number == playerConcernedBy.number 
+          || negativePositionChecked[1].player.number == playerConcernedBy.number){
+        if((negativePositionChecked[0].player.number != playerConcernedBy.number && negativePositionChecked[0].player.number != 0)
+            || (negativePositionChecked[1].player.number != playerConcernedBy.number && negativePositionChecked[1].player.number != 0))
+          twoInDeadLine += POINTS_FOR_UNUSED_LINE;
+        else
+          twoInLinePoints += POINTS_FOR_TWO_ITEMS_SAME_LINE;
+        
       }
     }
     
@@ -1396,6 +1426,15 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
           totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
+      else if(minusAndPlusPositions[0].player.number == playerConcernedBy.number 
+          || minusAndPlusPositions[1].player.number == playerConcernedBy.number){
+        if((minusAndPlusPositions[0].player.number != playerConcernedBy.number && minusAndPlusPositions[0].player.number != 0)
+            || (minusAndPlusPositions[1].player.number != playerConcernedBy.number && minusAndPlusPositions[1].player.number != 0))
+          twoInDeadLine += POINTS_FOR_UNUSED_LINE;
+        else
+          twoInLinePoints += POINTS_FOR_TWO_ITEMS_SAME_LINE;
+        
+      }
     }
     
     if(sameSquarePositions.length == 2){
@@ -1411,6 +1450,15 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
           totalPoints += POINTS_FOR_ADV_MILL;
         }
       }
+      else if(sameSquarePositions[0].player.number == playerConcernedBy.number 
+          || sameSquarePositions[1].player.number == playerConcernedBy.number){
+        if((sameSquarePositions[0].player.number != 0 && sameSquarePositions[0].player.number != playerConcernedBy.number) 
+            || (sameSquarePositions[1].player.number != 0 && sameSquarePositions[1].player.number != playerConcernedBy.number))
+          twoInDeadLine += POINTS_FOR_UNUSED_LINE;
+        else
+          twoInLinePoints += POINTS_FOR_TWO_ITEMS_SAME_LINE;
+        
+      }
     }
   }
   
@@ -1422,6 +1470,12 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         
         // We add the points to the BestPosition
         bp.points += totalPoints;
+        
+        if(isAvailableToDeleteBool){
+          //print('Inline points against '+playerConcernedBy.number.toString()+' for '+bp.emplacement.value.toString()+'-'+bp.emplacement.square+' !  : +' + twoInLinePoints.toString() + ' -'+twoInDeadLine.toString());
+          bp.points += twoInLinePoints;
+          bp.points -= twoInDeadLine;
+        }
         
         // uncomment to see each point by position
         //print('Position ' + bp.emplacement.square + '-' + bp.emplacement.value.toString() +
@@ -1438,9 +1492,11 @@ bool checkLinePossibilities(BestPosition bp, Player playerConcernedBy, bool isMi
         // We add the points to the BestPosition
         recursionBP.points += totalPoints;
         
-        // Then we update the list
-        listBestPositionsNeeded.removeAt(indexElem);
-        listBestPositionsNeeded.add(recursionBP);
+        if(indexElem != -1){
+          // Then we update the list
+          listBestPositionsNeeded.removeAt(indexElem);
+          listBestPositionsNeeded.add(recursionBP);
+        }
       }
     
   }else{
