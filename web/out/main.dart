@@ -1084,10 +1084,10 @@ void setPointsToPosition(BestPosition bp, Player playerConcernedBy, bool ignoreS
         BestPosition fakeBp = new BestPosition(0, recursionPossibleMoves[k]);
         fakeBp.startEmplacement = recursionBP.emplacement;
         
-        isRecursion = false;
         setPointsToPosition(fakeBp, playerConcernedBy, ignoreStep2);
-        isRecursion = true;
       }
+    }else{
+      currentDepth--;
     }
   }
   
