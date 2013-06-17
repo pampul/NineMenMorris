@@ -7086,3 +7086,10 @@ Total time spent on web/index.html                           -- 856 ms
 Total time                                                   -- 880 ms
 build.dart finished [1128 ms]
 
+---
+build.dart --machine --changed=web/main.dart
+Total time spent on web/index.html                           -- 898 ms
+[{"method":"mapping","params":{"from":"web/index.html","to":"web/out/index.html"}}]
+Total time                                                   -- 925 ms
+build.dart finished [1202 ms]
+

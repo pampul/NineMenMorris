@@ -139,7 +139,7 @@ void main() {
   gameBoard.init();
   
   // Select a game type
-  gameBoard.selectScenariAndLevel(1, 1);
+  gameBoard.selectScenariAndLevel(2, 1);
   
   // Then, start the game
   init();
