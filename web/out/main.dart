@@ -66,6 +66,20 @@ set round(int value) {
   }
   __$round = value;
 }
+int __$round3v3 = 0;
+int get round3v3 {
+  if (__observe.observeReads) {
+    __observe.notifyRead(__changes, __observe.ChangeRecord.FIELD, 'round3v3');
+  }
+  return __$round3v3;
+}
+set round3v3(int value) {
+  if (__observe.hasObservers(__changes)) {
+    __observe.notifyChange(__changes, __observe.ChangeRecord.FIELD, 'round3v3',
+        __$round3v3, value);
+  }
+  __$round3v3 = value;
+}
 
 
 // -----------------------------------
@@ -569,6 +583,12 @@ void checkGameStep(){
     if(count1 < 3 || count2 < 3){
       doGameOver(false);
       return;
+    }else if(count1 < 4 && count2 < 4){
+      round3v3++;
+      gameBoard.player1.isGamePhase3 = true;
+      gameBoard.player2.isGamePhase3 = true;
+      int roundsLeft = 11-round3v3;
+      carefullMessage += "<br/>Carefull ! You have "+roundsLeft.toString()+" to finish the game ... (10 rounds on 3v3<br/>";
     }else if(count1 < 4){
       gameBoard.player1.isGamePhase3 = true;
     }else if(count2 < 4){
@@ -579,7 +599,12 @@ void checkGameStep(){
       doGameOver(false);
       return;
     }else if(round > 30){
-      carefullMessage = "After 50 rounds, the game will be over ! Hurry !";
+      carefullMessage += "After 50 rounds, the game will be over ! Hurry !";
+    }
+    
+    if(round3v3 > 10){
+      doGameOver(false);
+      return;
     }
   }
   /*
@@ -616,6 +641,10 @@ void doGameOver(bool cantMove){
   
   if(round > 49)
     msg += "Too long game ... \n\nDraw !!!";
+  
+  if(round3v3 > 10){
+    msg += "Too long game on 3v3 ... \n\nDraw !!";
+  }
   
   if(cantMove){
     msg += "The player "+currentPlayer.number.toString()+" can't move !! \n\n He lose the game !";
